@@ -1,3 +1,3 @@
 # KI-UT
 
-Welcome to Shunsuke Sakai's repository
+Welcome to Shunsuke Sakai's repository!
