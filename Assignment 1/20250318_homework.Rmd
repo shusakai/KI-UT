@@ -1,0 +1,222 @@
+---
+title: "Assignment 1"
+author: "Shunsuke Sakai"
+date: "2025-03-18"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Task 1
+
+### #1 
+
+I read the paper.
+  
+### #2 
+a) This paper compared sensitivity/specificity of several spatial omics modalities using benchmark dataset. This paper's insight provide the guidance for the selection, processing, and interpretation for the future analysis of clinical samples such as tumor sample. 
+b) In situ spatial omics technologies, such as Molecular Cartography, MERSCOPE, Xenium, MERFISH, and EEL FISH, was used.
+
+## Task 2
+
+a) 
+1. As the authors mentioned, it is important to conduct same benchmark analysis using other tissue dataset.
+2. I think it would be better to remove immune cell from pseudo-bulk data when evaluating correlation between serial sections (Supplementary Figure 1a). Because immune cells are not continuously distributed as the cortex, immune cell don't have to be same between serial sections.
+3. To reduce false positive in the differential expression comparison between cells at two locations (such as Fig. 4a, b), it may be useful to subtract the expression of neighboring cells at each location.
+
+## Task 3
+
+I installed latest version of R, Rstudio, and Bioconductor.
+
+## Task 4
+
+```{r echo=T}
+# 1
+sqrt(10)
+
+# 2
+log2(32)
+
+# 3
+sum(1:1000)
+
+# 4
+sum(seq(2, 1000, by = 2))
+
+# 5
+choose(100, 2)
+
+# 6
+factorial(100) / factorial(100 - 3)
+```
+
+## Task 5
+
+```{r echo=T}
+# 1
+data(CO2)
+head(CO2)
+
+# 2
+help(CO2)
+```
+
+The CO2 dataframe has 5 columns and 84 rows.
+Each column's mean is showed below
+
+- Plant: A factor indicating different plant samples.
+- Type: A factor (Quebec or Mississippi) indicating the plant's origin.
+- Treatment: A factor indicating whether the plant was treated with non-chilled or chilled conditions.
+- conc: Numeric, representing ambient CO₂ concentration (ppm).
+- uptake: Numeric, representing the CO₂ uptake rate (μmol/m²/sec).
+
+```{r echo=T}
+# 3
+# Quebec mean
+mean(CO2[CO2$Type == "Quebec", ]$uptake)
+# Quebec median
+mean(CO2[CO2$Type == "Quebec", ]$uptake)
+# Mississippi mean
+mean(CO2[CO2$Type == "Mississippi", ]$uptake)
+# Mississippi median
+mean(CO2[CO2$Type == "Mississippi", ]$uptake)
+
+# 4
+# because this problem is optional, I will do later.
+```
+
+## Task 6
+
+```{r}
+# 1
+mean_median <- function(vec) {mean(vec) / median(vec)}
+
+# 2
+mean_nomaxmin <- function(vec) {
+  max_val <- max(vec)
+  min_val <- min(vec)
+  vec = vec[(vec != max_val) & (vec != min_val)]
+  return(mean(vec))
+}
+```
+
+#### #3
+Pipes can simplify code and increase readability. We can use pipes when we want to transform data step-by-step. 
+We should avoid to use pipes when debugging or writing nested code. 
+
+#### #4
+The function of apply, lapply, and sapply apply a function to individual components of dataframe, list, or vector object.
+The target of apply function is a column or row; however, the target of lapply and sapply is all compornents of the input data. 
+The output of lapply is list object, while that of sapply is vector object.
+
+
+## Task 7
+```{r}
+# 1
+library(ggplot2)
+library(dplyr)
+df <- read.csv("magic_guys.csv")
+## hist
+hist(df$length, breaks = 20)
+
+## ggplot+geom_histogram
+ggplot(df, aes(x = length)) + geom_histogram(breaks=seq(min(df$length), max(df$length), by=5))
+
+## ggplot+geom_boxplot
+ggplot(df, aes(y = length)) + geom_boxplot()
+
+## Save
+## hist
+png("hist.png")
+hist(df$length, breaks = 20)
+dev.off()
+
+## ggplot
+g <- ggplot(df, aes(x = length)) %>%
+  + geom_histogram(breaks=seq(min(df$length), max(df$length), by=5))
+ggsave(file = "geom_histogram.png", plot = g)
+
+# 2
+library(ggplot2)
+library(dplyr)
+df <- read.table("microarray_data.tab", header = TRUE, sep = "\t")
+## a) size
+nrow(df); ncol(df)
+## b) missing value
+missval <- colSums(is.na(df))
+hist(missval)
+## c) percentage of missing value per gene
+missval <- colSums(is.na(df))
+missval_per <- missval / nrow(df)
+names(missval_per[missval_per > 0.1]) # more than 10%
+names(missval_per[missval_per > 0.3]) # more than 30%
+names(missval_per[missval_per > 0.5]) # more than 50%
+
+## d) complements the NA velue with the mean value
+df <- df %>%
+  mutate(across(everything(), ~ ifelse(is.na(.), mean(., na.rm = TRUE), .)))
+#head(df)
+
+# 3
+library(ggplot2)
+
+# boxplot
+ggplot(CO2, aes(x = Type, y = uptake, fill = Treatment)) +
+  geom_boxplot() +
+  labs(x = "Plant Type",
+       y = "CO2 uptake") +
+  theme_minimal() +
+  scale_fill_manual(values = c("chilled" = "lightblue", "nonchilled" = "tomato"))
+
+```
+
+CO2 uptake rate were decreased in chilled status in the both plant types.
+
+## Task 8
+
+```{r}
+## 1
+### a
+library(tidybiology)
+data(chromosome)
+
+chromosome %>%
+  summarize(`Mean of variations` = mean(variations, na.rm = TRUE),  # mean
+            `Median of variations` = median(variations, na.rm = TRUE),  # median
+            `Max of variations` = max(variations, na.rm = TRUE), # max
+            `Mean of protein coding genes` = mean(protein_codinggenes, na.rm = TRUE),  # mean
+            `Median of protein coding genes` = median(protein_codinggenes, na.rm = TRUE),  # median
+            `Max of protein coding genes` = max(protein_codinggenes, na.rm = TRUE), # max
+            `Mean of miRNAs` = mean(mi_rna, na.rm = TRUE),  # mean
+            `Median of miRNAs` = median(mi_rna, na.rm = TRUE),  # median
+            `Max of miRNAs` = max(mi_rna, na.rm = TRUE) ) # max
+
+
+### b
+ggplot(chromosome, aes(x=length_mm)) + geom_histogram()
+
+### c
+ggplot(chromosome, aes(x=mi_rna, y=length_mm)) + geom_point()
+ggplot(chromosome, aes(x=protein_codinggenes, y=length_mm)) + geom_point()
+
+### d
+data(proteins)
+proteins %>%
+  summarize(`Mean of length` = mean(length, na.rm = TRUE),  # mean
+            `Median of length` = median(length, na.rm = TRUE),  # median
+            `Max of length` = max(length, na.rm = TRUE), # max
+            `Mean of mass` = mean(mass, na.rm = TRUE),  # mean
+            `Median of mass` = median(mass, na.rm = TRUE),  # median
+            `Max of mass` = max(mass, na.rm = TRUE) ) # max
+
+ggplot(proteins, aes(x=length, y=mass)) + 
+  geom_point(alpha = 0.1) + 
+  theme_bw()
+```
+
+
+
+
+
